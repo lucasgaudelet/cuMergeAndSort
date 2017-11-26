@@ -1,8 +1,8 @@
-SRC=src/main.c src/MergeSort.cu
+SRC=src/main.cu src/MergeSort.cu
 OBJ=main.o MergeSort.o
 
 CC=nvcc
-CFLAGS=-Wall -std=c++11
+CFLAGS= -std=c++11
 
 INC=-I./inc -I./src
 LIB=-L./lib 
