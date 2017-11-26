@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <time.h>
-#include <cuda_runtime.h>
-#include <cuda.h>
-//#include <MergeSort.h>
+#include <MergeSort.h>
 
 template <typename type>
 __host__ __device__ void merge(type* A, int na, int aid, type* B, int nb, int bid,
@@ -44,8 +40,7 @@ __global__ void partitionning(type* A, int na, type* B, int nb, type* C){
 
 	// binary search
 	int a, b, offset, aid, bid;
-	int tmp=0;
-	while(tmp<100000){
+	while(true){
 		offset = (a_top - a_bot) / 2;
 		a = a_top - offset;
 		b = b_top + offset;
@@ -64,7 +59,6 @@ __global__ void partitionning(type* A, int na, type* B, int nb, type* C){
 		else{
 			a_bot = a+1;
 		}
-	tmp++;
 	}
 
 	//printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);

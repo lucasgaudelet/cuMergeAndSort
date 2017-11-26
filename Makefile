@@ -1,5 +1,5 @@
-SRC=src/main.cu src/MergeSort.cu
-OBJ=main.o MergeSort.o
+SRC=src/main.cu #src/MergeSort.cu
+OBJ=main.o #MergeSort.o
 
 CC=nvcc
 CFLAGS= -std=c++11
