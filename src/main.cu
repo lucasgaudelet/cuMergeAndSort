@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
 	std::cout << "done" << std::endl;
 
 	// initialization
-	std::cout << "Initialization...\t" << std::flush;
+	std::cout << "Initialization and H2D...\t" << std::flush;
 
 	//init_array(cpu_v, n);
 	//cpu_sort(cpu_v, na);		//cpu_sort(cpu_v+na, nb);
@@ -167,7 +167,6 @@ bool is_sorted(type* array, int n) {
 	}
 	return true;
 }
-
 
 template <typename type>
 void print_array(type* array, int n) {
