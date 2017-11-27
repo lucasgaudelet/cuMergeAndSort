@@ -11,10 +11,13 @@ LDFLAGS=$(INC) $(LIB)
 .PHONY: all
 all: ./bin/ms
 
-%.o: src/%.cc
-	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
+#%.o: src/%.cc
+#	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
-%.o: src/%.cu
+#%.o: src/%.cu
+#	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
+
+main.o: src/main.cu inc/MergeSort.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o $@ $<
 
 ./bin/ms: $(OBJ)

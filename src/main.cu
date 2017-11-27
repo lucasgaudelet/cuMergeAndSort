@@ -60,7 +60,7 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 
-	std::cout << "done" << std::endl << std::endl;
+	std::cout << "done" << std::endl;
 
 	// initialization
 	std::cout << "Initialization...\t" << std::flush;
@@ -71,7 +71,8 @@ int main(int argc, char* argv[]){
 	cudaMemcpy(A, cpu_v, na*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(B, cpu_v+na, nb*sizeof(int), cudaMemcpyHostToDevice);
 
-	if(n<80) {
+	if(n<60) {
+		std::cout << std::endl;
 		print_array(cpu_v, na);
 		print_array(cpu_v+na, nb);
 	}
@@ -85,17 +86,36 @@ int main(int argc, char* argv[]){
 	partitionning<int><<<1, blockSize>>>(A, na, B, nb, C);
 	kernel.stop();
 	cudaDeviceSynchronize();
-	std::cout << "done" << std::endl << std::endl;
+	std::cout << "done" << std::endl;
 
 	// D2H
 	std::cout << "transfert D2H...\t" << std::flush;
 	cudaMemcpy(out, C, n*sizeof(int), cudaMemcpyDeviceToHost);
-	std::cout << "done" << std::endl << std::endl;
+	std::cout << "done" << std::endl;
+	
+	// compare results
+	ChTimer cpuTimer;
+	//string filename;
+	bool compare_cpu = (chCommandLineGetBool("c", argc, argv))?
+		true:chCommandLineGetBool("compare-cpu", argc, argv);
+	//bool store = (chCommandLineGetBool("r", argc, argv))?
+	//	true:chCommandLineGetBool("store-results", argc, argv);
+	if(compare_cpu) {
+		std::cout << "cpu sort...\t" << std::flush;
+		cpuTimer.start();
+		cpu_sort(cpu_v, n);
+		cpuTimer.stop();
+		std::cout << "done" << std::endl << std::endl;
+	}
 
 	// afficher
-	if(n<80) print_array(out, n);
-	std::cout << "sorted=" << is_sorted(out, n) << std::endl;
-	std::cout << "time: " << 1e3*kernel.getTime() << "ms" << std::endl;
+	std::cout << "Results...\t" << std::flush;
+	if(n<60)	print_array(out, n);
+	else		std::cout << std::endl;
+	std::cout << "\tsorted=" << is_sorted(out, n) << std::endl;
+	std::cout << "\tgpu time: " << 1e3*kernel.getTime() << "ms" << std::endl;
+	if(compare_cpu)
+		std::cout <<"\tcpu time: "<<1e3*cpuTimer.getTime()<<"ms"<<std::endl;
 
 	//free
 	free(cpu_v);	free(out);

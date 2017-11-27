@@ -44,27 +44,34 @@ __global__ void partitionning(type* A, int na, type* B, int nb, type* C){
 
 	// binary search
 	int a, b, offset, aid, bid;
-	int tmp=0;
-	while(tmp<100000){
-		offset = (a_top - a_bot) / 2;
-		a = a_top - offset;
-		b = b_top + offset;
+	//int tmp=0;
+	//while(tmp<100000){
+	if(tid !=0) {
+		while(true) {
+			offset = (a_top - a_bot) / 2;
+			a = a_top - offset;
+			b = b_top + offset;
 
-		if(A[a]>B[b-1]){
-			if(A[a-1]<=B[b]){
-				aid = a;
-				bid = b;
-				break;
+			if(A[a]>B[b-1]){
+				if(A[a-1]<=B[b]){
+					aid = a;
+					bid = b;
+					break;
+				}
+				else{
+					a_top = a-1;
+					b_top = b+1;
+				}
 			}
 			else{
-				a_top = a-1;
-				b_top = b+1;
+				a_bot = a+1;
 			}
+		//tmp++;
 		}
-		else{
-			a_bot = a+1;
-		}
-	tmp++;
+	}
+	else {
+		aid = 0;
+		bid = 0;
 	}
 
 	//printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
