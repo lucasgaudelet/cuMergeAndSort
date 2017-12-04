@@ -23,5 +23,3 @@ clean:
 	rm -f *.o
 	rm -f bin/*
 
-exec:
-	time ./bin/repressilator

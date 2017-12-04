@@ -2,15 +2,15 @@
 
 __global__ void partition(int* A, int na, int* B, int nb, int* C){
 
-	int nbThreads = blockDim.x * gridDim.x;			// number of threads
+	int nbThreads = blockDim.x * gridDim.x;		// number of threads
 	int tid = blockIdx.x*blockDim.x+threadIdx.x;	// thread ID
-	int load = (na+nb)/nbThreads;					// size of each subarray
-	int index = tid*load;							// starting index in C
+	int load = (na+nb)/nbThreads;			// size of each subarray
+	int index = tid*load;				// starting index in C
 
 	// search zone: indices of the top-right cell of the central diagonal
 	int a_top = (index>na)? na:index;		// col index (in A)
 	int b_top = (index>na)? index-na:0;		// row index (in B)
-	int a_bot = b_top;						// top left col index
+	int a_bot = b_top;				// top left col index
 
 	// binary search (dichotomy)
 	int a, b, offset, aid, bid;
@@ -90,6 +90,7 @@ __global__ void partition2(int* A, int na, int* B, int nb, int* C) {
 	}
 
 	printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
-	merge2<<<1,3>>>(A, na, aid, B, nb, bid, C, index, load);
 
+	if(load<1024)	merge2<<<1,load>>>(A, na, aid, B, nb, bid, C, index, load);
+	else		merge2<<<1,1024>>>(A, na, aid, B, nb, bid, C, index, load);
 }
