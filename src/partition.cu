@@ -49,6 +49,8 @@ __global__ void partition(int* A, int na, int* B, int nb, int* C){
 
 __global__ void partition2(int* A, int na, int* B, int nb, int* C) {
 
+	if(blockIdx.x==0 && threadIdx.x==0) printf("\t %d x %d\n", gridDim.x, blockDim.x);
+
 	int nbThreads = blockDim.x * gridDim.x;			// number of threads
 	int tid = blockIdx.x*blockDim.x+threadIdx.x;	// thread ID
 	int load = (na+nb)/nbThreads;					// size of each subarray

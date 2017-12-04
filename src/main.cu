@@ -6,7 +6,6 @@
 #include <chTimer.hpp>
 #include <chCommandLine.h>
 
-//#include <MergeSort.h>
 #include <merge.h>
 #include <partition.h>
 #include <sort.h>

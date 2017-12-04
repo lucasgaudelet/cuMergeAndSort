@@ -26,10 +26,14 @@ __host__ __device__ void merge(int* A, int na, int aid, int* B, int nb, int bid,
 __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 				int* C, int cid, int load) {
 
+
 	int tid = threadIdx.x;	// thread ID
 	int index = cid+tid;	// starting index in C
 	int a, b, offset;
 	
+	if(blockIdx.x==0 && tid==0) printf("\tMerge %d x %d\n", gridDim.x, blockDim.x);
+	else{ }
+
 	while( index < (cid+load) ) {	// batch loop
 
 		// find path
@@ -42,12 +46,11 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 			int b_top = bid;	// row index (in B)
 			int a_bot = b_top;	// top left col index
 			
-			if(index==10 || index==11) {
-				printf("[%d] (%d,%d) - %d\n", index, a_top, b_top, a_bot);
-			}
+			//printf("\t[%d] (%d,%d) - %d\n", index, a_top, b_top, a_bot);
 			
 			if(a_top>na) {	// if all elements of A were already taken
-					a = na-1;	b = bid+(a_top-na);
+				a = na-1;	b = bid+(a_top-na);
+				printf("(%d,%d) -> (%d,%d)\n", a_top, b_top, a, b);
 			}
 			else {
 				int cpt=0;
@@ -73,6 +76,7 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 			}
 		}
 
+		printf("\t[%d] (%d,%d)\n", index, a, b);
 		// put the element in C
 		if(A[a] < B[b]) {
 			C[index] = A[a];
