@@ -5,14 +5,17 @@
 
 #include <chTimer.hpp>
 #include <chCommandLine.h>
-#include <MergeSort.h>
+
+//#include <MergeSort.h>
+#include <merge.h>
+#include <partition.h>
+#include <sort.h>
 
 const static int DEFAULT_N = 12;
 const static int DEFAULT_BLOCKSIZE = 4;
 
 // function prototypes
 template <typename type> void init_array(type* array, int n, int mod=0);
-template <typename type> void cpu_sort(type* array, int n);
 template <typename type> void print_array(type* array, int n);
 template <typename type> bool is_sorted(type* array, int n);
 
@@ -65,8 +68,6 @@ int main(int argc, char* argv[]){
 	// initialization
 	std::cout << "Initialization and H2D...\t" << std::flush;
 
-	//init_array(cpu_v, n);
-	//cpu_sort(cpu_v, na);		//cpu_sort(cpu_v+na, nb);
 	init_array(cpu_v, na, 1);		init_array(cpu_v+na, nb, 1);
 	cudaMemcpy(A, cpu_v, na*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(B, cpu_v+na, nb*sizeof(int), cudaMemcpyHostToDevice);
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]){
 
 	ChTimer kernel;
 	kernel.start();
-	partitionning<int><<<1, blockSize>>>(A, na, B, nb, C);
+	partition2<<<1, blockSize>>>(A, na, B, nb, C);
 	kernel.stop();
 	cudaDeviceSynchronize();
 	std::cout << "done" << std::endl;
@@ -103,7 +104,6 @@ int main(int argc, char* argv[]){
 	if(compare_cpu) {
 		std::cout << "cpu sort...\t" << std::flush;
 		cpuTimer.start();
-		cpu_sort(cpu_v, n);
 		cpuTimer.stop();
 		std::cout << "done" << std::endl << std::endl;
 	}
@@ -141,22 +141,6 @@ void init_array(type* array, int n, int mod) {
                         array[i]=i;
                 }
                 break;
-	}
-}
-
-template <typename type>
-void cpu_sort(type* array, int n) {
-	bool swap=true;
-	for(int i=0;(i<n)&&swap;i++){
-		swap = false;
-		for(int j=0;(j<n-i-1);j++){
-			if(array[j]>array[j+1]){
-				int tmp = array[j];
-				array[j] = array[j+1];
-				array[j+1] = tmp;
-				swap = true;
-			}
-		}
 	}
 }
 

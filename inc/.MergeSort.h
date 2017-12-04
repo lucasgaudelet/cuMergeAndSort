@@ -27,6 +27,64 @@ __host__ __device__ void merge(type* A, int na, int aid, type* B, int nb, int bi
 }
 
 template <typename type>
+__global__ void merge2(type* A, int na, int aid, type* B, int nb, int bid,
+				type* C, int cid, int load) {
+
+	//int tid = blockIdx.x*blockDim.x+threadIdx.x;	// thread ID
+	int index = cid+threadIdx.x;					// starting index in C
+	int a, b, offset;
+	
+	while( index < (cid+load) ) {
+		if(index==cid) {
+			// thread 0 always starts at (0,0)
+			a = aid;	b = bid;
+		}
+		else {
+			// search zone: indices of the top-right cell of the central diagonal
+			int a_top = aid+threadIdx.x;	// col index (in A)
+			int b_top = bid;				// row index (in B)
+			int a_bot = aid;				// top left col index
+			
+			if(a_top<na && b_top<nb) {	// this should always be true
+				// binary search (dichotomy)
+		
+				while(true) {
+					// get mid cell of the (sub-)diagonal
+					offset = (a_top - a_bot) / 2;
+					a = a_top - offset;		b = b_top + offset;
+
+					// check if point found
+					if(A[a]>B[b-1]){
+						if(A[a-1]<=B[b]){
+							// point found
+							break;
+						}
+						else{
+							// restrict search to lower half
+							a_top = a-1;	b_top = b+1;
+						}
+					}
+					else{
+						// restrict search to upper half
+						a_bot = a+1;
+					}
+				}
+			}
+			
+			printf("[%d] (%d,%d)\n", index, a, b);
+			if(A[a] < B[b]) {
+				C[index] = A[a];
+			}
+			else {
+				C[index] = B[b];
+			}
+		}
+		index+=blockDim.x;
+	}
+				
+}
+
+template <typename type>
 __global__ void partitionning(type* A, int na, type* B, int nb, type* C){
 
 	int nbThreads = blockDim.x * gridDim.x;			// number of threads
@@ -70,6 +128,7 @@ __global__ void partitionning(type* A, int na, type* B, int nb, type* C){
 	}
 
 	//printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
-	merge(A, na, aid, B, nb, bid, C, index, load);
+	//merge(A, na, aid, B, nb, bid, C, index, load);
+	merge2<<<1,3>>>(A, na, aid, B, nb, bid, C, index, load);
 
 }
