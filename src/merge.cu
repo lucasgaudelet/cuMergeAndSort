@@ -26,7 +26,7 @@ __host__ __device__ void merge(int* A, int na, int aid, int* B, int nb, int bid,
 __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 				int* C, int cid, int load) {
 
-	//if(blockIdx.x==0 && threadIdx.x==0) printf("\tMerge %d x %d\n", gridDim.x, blockDim.x);
+	if(blockIdx.x==0 && threadIdx.x==0) printf("\t\tMerge %d x %d\n", gridDim.x, blockDim.x);
 
 	int tid = threadIdx.x;	// thread ID
 	int index = cid+tid;	// starting index in C
@@ -38,41 +38,35 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 		if(index==cid) { // thread 0 always starts at (0,0)
 			a = aid;	b = bid;
 		}
-		else {
+		if(index==na+nb-1) {	// if this is the last element of the array
+			a = na-1;	b = nb-1;
+		}
+		else {	// binary search
 			// search zone:
 			int a_top = (aid+tid>na)? na:aid+tid;	// col index (in A)
 			int b_top = (aid+tid>na)? index-na:bid;	// row index (in B)
 			int a_bot = b_top;	// top left col index
 			
-			if(index==na+nb-1) {	// if all elements of A were already taken
-				a = na-1;	b = nb-1;
-				//printf("[%d] (%d,%d) -> (%d,%d)\n", index, a_top, b_top, a, b);
-			}
-			else {
-				//int cpt=0;
-				while(/*cpt<10000*/true) {	// binary search (dichotomy)
-			
-					// get mid cell of the (sub-)diagonal
-					offset = (a_top - a_bot) / 2;
-					a = a_top - offset;		b = b_top + offset;
+			while(true) {
+		
+				// get mid cell of the (sub-)diagonal
+				offset = (a_top - a_bot) / 2;
+				a = a_top - offset;		b = b_top + offset;
 
-					if(A[a]>B[b-1]){
-						if(A[a-1]<=B[b]){
-							break;	// point found
-						}
-						else{ // restrict search to lower half
-							a_top = a-1;	b_top = b+1;
-						}
+				if(A[a]>B[b-1]){
+					if(A[a-1]<=B[b]){
+						break;	// point found
 					}
-					else{ // restrict search to upper half
-						a_bot = a+1;
+					else{ // restrict search to lower half
+						a_top = a-1;	b_top = b+1;
 					}
-					//cpt++;
+				}
+				else{ // restrict search to upper half
+					a_bot = a+1;
 				}
 			}
 		}
 
-		//printf("\t[%d] (%d,%d)\n", index, a, b);
 		// put the element in C
 		if(A[a] < B[b]) {
 			C[index] = A[a];
@@ -83,5 +77,4 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 		tid+=blockDim.x;
 		index+=blockDim.x;
 	}
-				
-}
+}				

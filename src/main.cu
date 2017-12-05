@@ -6,17 +6,13 @@
 #include <chTimer.hpp>
 #include <chCommandLine.h>
 
+#include <utils.h>
 #include <merge.h>
 #include <partition.h>
 #include <sort.h>
 
 const static int DEFAULT_N = 12;
 const static int DEFAULT_BLOCKSIZE = 4;
-
-// function prototypes
-template <typename type> void init_array(type* array, int n, int mod=0);
-template <typename type> void print_array(type* array, int n);
-template <typename type> bool is_sorted(type* array, int n);
 
 void print_help( char* argv);
 
@@ -49,7 +45,7 @@ int main(int argc, char* argv[]){
 	int* out = (int*)malloc(n*sizeof(int));
 
 		// gpu
-	int na, nb;
+	/*int na, nb;
 	na = floor(n/2); 	nb = ceil(n/2);
 
 	int *A, *B, *C;
@@ -63,18 +59,19 @@ int main(int argc, char* argv[]){
 	}
 
 	std::cout << "done" << std::endl;
-
+	*/
 	// initialization
 	std::cout << "Initialization and H2D...\t" << std::flush;
-
-	init_array(cpu_v, na, 1);		init_array(cpu_v+na, nb, 1);
+	
+	init_array(cpu_v, n);
+	/*init_array(cpu_v, na, 1);		init_array(cpu_v+na, nb, 1);
 	cudaMemcpy(A, cpu_v, na*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(B, cpu_v+na, nb*sizeof(int), cudaMemcpyHostToDevice);
-
+	*/
 	if(n<60) {
 		std::cout << std::endl;
-		print_array(cpu_v, na);
-		print_array(cpu_v+na, nb);
+		//print_array(cpu_v, na);
+		//print_array(cpu_v+na, nb);
 	}
 	std::cout << "done" << std::endl << std::endl;
 
@@ -83,16 +80,18 @@ int main(int argc, char* argv[]){
 
 	ChTimer kernel;
 	kernel.start();
-	partition2<<<1, blockSize>>>(A, na, B, nb, C);
+	//partition2<<<1, blockSize>>>(A, na, B, nb, C);
+	
+	msWrapper(cpu_v, n, out);
 	kernel.stop();
 	cudaDeviceSynchronize();
 	std::cout << "done" << std::endl;
 
 	// D2H
-	std::cout << "transfert D2H...\t" << std::flush;
+	/*std::cout << "transfert D2H...\t" << std::flush;
 	cudaMemcpy(out, C, n*sizeof(int), cudaMemcpyDeviceToHost);
 	std::cout << "done" << std::endl;
-	
+	*/
 	// compare results
 	ChTimer cpuTimer;
 	//string filename;
@@ -103,6 +102,7 @@ int main(int argc, char* argv[]){
 	if(compare_cpu) {
 		std::cout << "cpu sort...\t" << std::flush;
 		cpuTimer.start();
+		bubbleSort(cpu_v, n);
 		cpuTimer.stop();
 		std::cout << "done" << std::endl << std::endl;
 	}
@@ -118,45 +118,11 @@ int main(int argc, char* argv[]){
 
 	//free
 	free(cpu_v);	free(out);
-	cudaFree(A);	cudaFree(B);
-	cudaFree(C);
+	//cudaFree(A);	cudaFree(B);
+	//cudaFree(C);
 
 	// return 0
 	return 0;
-}
-
-template <typename type>
-void init_array(type* array, int n, int mod) {
-
-	switch(mod) {
-	case 0:
-		for(int i=0;i<n;i++){
-			array[i]=rand()%10;
-		}
-		break;
-
-	case 1:
-		for(int i=0;i<n;i++){
-                        array[i]=i;
-                }
-                break;
-	}
-}
-
-template <typename type>
-bool is_sorted(type* array, int n) {
-	for(int i=0; i<n-1; i++) {
-		if(array[i]>array[i+1]) return false;
-	}
-	return true;
-}
-
-template <typename type>
-void print_array(type* array, int n) {
-	for(int i=0; i<n; i++) {
-		std::cout << array[i] << " ";
-	}
-	std::cout << std::endl;
 }
 
 void print_help( char* argv) {
