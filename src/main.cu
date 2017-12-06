@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
 	int* out = (int*)malloc(n*sizeof(int));
 
 		// gpu
-	int na, nb;
+	/*int na, nb;
 	na = floor(n/2); 	nb = ceil(n/2);
 
 	int *A, *B, *C;
@@ -56,23 +56,23 @@ int main(int argc, char* argv[]){
 	if(!A || !B || !C ) {
 		std::cout << "memory alloc error" << std::endl;
 		return -1;
-	}
+	}*/
 
 	std::cout << "done" << std::endl;
 	
 	// initialization
 	std::cout << "Initialization and H2D...\t" << std::flush;
 	
-	//init_array(cpu_v, n);
-	init_array(cpu_v, na, 0);		init_array(cpu_v+na, nb, 0);
+	init_array(cpu_v, n);
+	/*init_array(cpu_v, na, 0);		init_array(cpu_v+na, nb, 0);
 	bubbleSort(cpu_v, na);			bubbleSort(cpu_v+na, nb);
 	cudaMemcpy(A, cpu_v, na*sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(B, cpu_v+na, nb*sizeof(int), cudaMemcpyHostToDevice);
-	
+	*/
 	if(n<70) {
 		std::cout << std::endl;
-		print_array(cpu_v, na);
-		print_array(cpu_v+na, nb);
+		//print_array(cpu_v, na);
+		//print_array(cpu_v+na, nb);
 	}
 	std::cout << "done" << std::endl << std::endl;
 
@@ -81,19 +81,21 @@ int main(int argc, char* argv[]){
 
 	ChTimer kernel;
 	kernel.start();
-	partition2<<<1, blockSize>>>(A, na, B, nb, C);
+	/*partition2<<<1, blockSize>>>(A, na, B, nb, C);
+	partition<<<1, blockSize>>>(A, na, B, nb, C);
 	cudaDeviceSynchronize();
-	//msWrapper(cpu_v, n, out, 5);
+	*/
+	msWrapper(cpu_v, n, out, 5);
 	kernel.stop();
 	std::cout << "done" << std::endl;
 
 	//print_array(out, n);
 
 	// D2H
-	std::cout << "transfert D2H...\t" << std::flush;
+	/*std::cout << "transfert D2H...\t" << std::flush;
 	cudaMemcpy(out, C, n*sizeof(int), cudaMemcpyDeviceToHost);
 	std::cout << "done" << std::endl;
-	
+	*/
 	// compare results
 	ChTimer cpuTimer;
 	//string filename;
@@ -120,8 +122,9 @@ int main(int argc, char* argv[]){
 
 	//free
 	free(cpu_v);	free(out);
-	cudaFree(A);	cudaFree(B);
+	/*cudaFree(A);	cudaFree(B);
 	cudaFree(C);
+	*/
 
 	return 0;
 }

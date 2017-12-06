@@ -34,66 +34,6 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 	
 	while( index < (cid+load) ) {	// batch loop
 
-		/*
-		if(index==na+nb-1) {	// if this is the last element of the array
-			a = na-1;	b = nb-1;
-			C[index] = (A[a]<B[b])? B[b]:A[a];
-			printf("[%d] last element\n", index);
-		}
-		else {
-			if(index==cid) { // thread 0 always starts at (aid,bid)
-				a = aid;	b = bid;
-			}
-			else {
-				// search zone:
-				int a_top = (aid+tid>na)? na:aid+tid;	// col index (in A)
-				int b_top = (aid+tid>na)? index-na:bid;	// row index (in B)
-				int a_bot = aid;	// top left col index
-			
-				printf("\t\t[%d] (%d,%d) %d\n", index, a_top, b_top, a_bot);
-			
-				if(a_top==na && a_bot == na-1) {	// all A elements are taken
-					a = na - 1;	b = b_top+1;
-					printf("\t\t[%d] (%d,%d)->(%d,%d)\n", index, a_top, b_top, a, b);
-				}
-				else {
-					int cpt=0;
-					while(cpt<10000) {	// binary search
-						// get mid cell of the (sub-)diagonal
-						offset = (a_top - a_bot) / 2;
-						a = a_top - offset;		b = b_top + offset;
-
-						if(A[a]>B[b-1]){
-							if(A[a-1]<=B[b]){
-								break;	// point found
-							}
-							else{ // restrict search to lower half
-								a_top = a-1;	b_top = b+1;
-							}
-						}
-						else{ // restrict search to upper half
-							a_bot = a+1;
-						}
-						cpt++;
-					}
-				}
-			
-			}
-			
-			printf("\t\t[%d] (%d,%d)\n", index, a, b);
-			// put the element in C
-			if(A[a] < B[b]) {
-				C[index] = A[a];
-			}
-			else {
-				C[index] = B[b];
-			}
-			
-			tid+=blockDim.x;
-			index+=blockDim.x;
-		}*/
-
-		
 		// find path
 		if(index==cid) { // thread 0 always starts at (0,0)
 			a = aid;	b = bid;
@@ -106,15 +46,19 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 			// search zone:
 			int a_top = (aid+tid>na)? na:aid+tid;	// col index (in A)
 			int b_top = (aid+tid>na)? index-na:bid;	// row index (in B)
-			int a_bot = aid;	// top left col index
+			int a_bot = ((a_top-aid)>(nb-b_top))? na+b_top-nb:aid;	// top left col index
 			
 			printf("\t\t[%d] (%d,%d) %d\n", index, a_top, b_top, a_bot);
 			
 			if(a_top==na && a_bot == na-1) {
 				a = na - 1;	b = b_top+1;
 			}
+			else if(b_top==nb-1) {
+				a = a_top;	b = b_top;
+			}
 			else {
-				while(true) {
+				int cpt=0;
+				while(cpt<1000) {
 		
 					// get mid cell of the (sub-)diagonal
 					offset = (a_top - a_bot) / 2;
@@ -131,6 +75,7 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 					else{ // restrict search to upper half
 						a_bot = a+1;
 					}
+					cpt++;
 				}
 			}
 		}
