@@ -38,16 +38,19 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 		if(index==cid) { // thread 0 always starts at (0,0)
 			a = aid;	b = bid;
 		}
-		if(index==na+nb-1) {	// if this is the last element of the array
+		else if(index==na+nb-1) {	// if this is the last element of the array
 			a = na-1;	b = nb-1;
 		}
 		else {	// binary search
 			// search zone:
 			int a_top = (aid+tid>na)? na:aid+tid;	// col index (in A)
 			int b_top = (aid+tid>na)? index-na:bid;	// row index (in B)
-			int a_bot = b_top;	// top left col index
+			int a_bot = aid;	// top left col index
 			
-			while(true) {
+			//printf("\t\t[%d] (%d,%d)\n", index, a_top, b_top);
+			
+			int cpt = 0;
+			while(cpt<10000) {
 		
 				// get mid cell of the (sub-)diagonal
 				offset = (a_top - a_bot) / 2;
@@ -64,9 +67,11 @@ __global__ void merge2(int* A, int na, int aid, int* B, int nb, int bid,
 				else{ // restrict search to upper half
 					a_bot = a+1;
 				}
+				cpt++;
 			}
 		}
 
+		printf("\t\t[%d] (%d,%d)\n", index, a, b);
 		// put the element in C
 		if(A[a] < B[b]) {
 			C[index] = A[a];

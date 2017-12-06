@@ -37,4 +37,7 @@ int main(int argc, char* argv[]) {
 		<< " = " << std::ceil( (float)n/std::pow(2,s) ) * std::pow(2,s) << std::endl;
 
 	std::cout << "2^s * 2^p -n = " <<  std::ceil( (float)n/std::pow(2,s) ) * std::pow(2,s) - n << std::endl;
+
+	int t = 2;
+	std::cout << (t<<1) << (t>>1) << std::endl;
 }
