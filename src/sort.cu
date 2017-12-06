@@ -79,10 +79,10 @@ void msWrapper(int* input_array, int size, int* output_array, int grain_exp) {
 		std::cout << "parallel_merge: " << 1 << " x " << p << std::endl;
 		parallel_merge <<<1,p>>> (tmp, size, tmp2, subarray_size);
 
-		int* test = (int*)malloc(size*sizeof(int));
+		/*int* test = (int*)malloc(size*sizeof(int));
 		cudaMemcpy(test, tmp2, size*sizeof(int), cudaMemcpyDeviceToHost);
 		print_array(test, size);
-		free(test);
+		free(test);*/
 
 		cudaFree(tmp);
 		tmp = tmp2;
