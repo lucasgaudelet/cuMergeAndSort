@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
 	std::cout << "done" << std::endl;
 
 	// gpu sort
-	std::cout << "gpu sort...\t" << std::flush;
+	std::cout << "gpu sort...\t\t" << std::flush;
 	ChTimer kernel;
 	kernel.start();
 	msWrapper(cpu_v, n, out, partSize);

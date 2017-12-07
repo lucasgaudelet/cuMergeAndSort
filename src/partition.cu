@@ -46,5 +46,8 @@ __global__ void partition(int* A, int na, int* B, int nb, int* C){
 
 	//printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
 	merge(A, na, aid, B, nb, bid, C, index, load);
+
+	/*if(load<1024)	merge2<<<1,load>>>(A, na, aid, B, nb, bid, C, index, load);
+	else		merge2<<<1,1024>>>(A, na, aid, B, nb, bid, C, index, load);*/
 }
 
