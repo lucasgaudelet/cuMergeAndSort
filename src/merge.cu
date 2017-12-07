@@ -18,6 +18,9 @@ __host__ __device__ void merge(int* A, int na, int aid, int* B, int nb, int bid,
 		else if(bid<nb) {
 			C[cid+t] = B[bid];      bid++;
 		}
+		else {
+			printf("error, this should not happen\n");
+		}
 	}
 	
 }

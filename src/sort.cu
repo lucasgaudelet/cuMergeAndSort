@@ -64,43 +64,40 @@ __global__ void parallel_merge2(int* input_array, int size, int* output_array, i
 }
 
 
-void msWrapper(int* input_array, int size, int* output_array, int grain_exp) {
+void msWrapper(int* input_array, int size, int* output_array, int part_size) {
 
-	int p = nextpow2(size) - grain_exp;
-	if(p<0) {
-		std::cout << "input array is too small for specified grain" << std::endl;
-		exit(-1);
-	}
-	
-	std::cout << "p+grain "<< p << "+" << grain_exp << std::endl;
 	int *tmp, *tmp2;
-	int subarray_size = std::pow(2,grain_exp);
+	int subarray_size = get_subarray_size<int>(size);
+
+	//std::cout << "\nn=" << size << "\tgrain=" << subarray_size << "\tn/grain=" << std::ceil((float)size/subarray_size) << std::endl;
 
 	// initial sorting of the array
 	cudaMalloc(&tmp, size*sizeof(int));
 	cudaMemcpy(tmp, input_array, size*sizeof(int), cudaMemcpyHostToDevice);
 
-	std::cout << "initial_sort:" << subarray_size << std::endl;
+	//std::cout << "initial_sort:" << subarray_size << std::endl;
 	initial_sort<<<1, std::ceil((float)size/subarray_size)>>>(tmp, size, subarray_size);
 
-	int* test = (int*)malloc(size*sizeof(int));
+	/*int* test = (int*)malloc(size*sizeof(int));
 	cudaMemcpy(test, tmp, size*sizeof(int), cudaMemcpyDeviceToHost);
 	print_array(test, size);
-	free(test);
+	free(test);*/
 
 	// merging arrays two by two until complete sorting
-	while(p>0) {
+	int p = std::ceil((float)size/subarray_size);
+	while(p>1) {
 	
 		cudaMalloc(&tmp2, size*sizeof(int));
 
-		std::cout << "parallel_merge: " << 1 << " x " << p << std::endl;
-		parallel_merge <<<1,p>>> (tmp, size, tmp2, subarray_size);
+		//std::cout << "parallel_merge: " << 1 << " x " << p << std::endl;
+		parallel_merge <<<1,(p>>1)>>> (tmp, size, tmp2, subarray_size, part_size);
 
-		int* test = (int*)malloc(size*sizeof(int));
+		/*int* test = (int*)malloc(size*sizeof(int));
 		cudaMemcpy(test, tmp2, size*sizeof(int), cudaMemcpyDeviceToHost);
 		print_array(test, size);
-		free(test);
+		free(test);*/
 
+		cudaDeviceSynchronize();
 		cudaFree(tmp);
 		tmp = tmp2;
 

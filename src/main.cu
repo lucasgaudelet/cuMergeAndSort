@@ -11,8 +11,8 @@
 #include <partition.h>
 #include <sort.h>
 
-const static int DEFAULT_N = 12;
-const static int DEFAULT_BLOCKSIZE = 4;
+const static int DEFAULT_N = 100;
+const static int DEFAULT_BLOCKSIZE = 32;
 
 void print_help( char* argv);
 
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]){
 	std::cout << "done" << std::endl << std::endl;
 
 	// Kernel call
-	std::cout << "Partitionning...\t" << std::flush;
+	std::cout << "gpu sort...\t" << std::flush;
 
 	ChTimer kernel;
 	kernel.start();
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
 	partition<<<1, blockSize>>>(A, na, B, nb, C);
 	cudaDeviceSynchronize();
 	*/
-	msWrapper(cpu_v, n, out, 5);
+	msWrapper(cpu_v, n, out, blockSize);
 	kernel.stop();
 	std::cout << "done" << std::endl;
 
@@ -119,6 +119,8 @@ int main(int argc, char* argv[]){
 	std::cout << "\tgpu time: " << 1e3*kernel.getTime() << "ms" << std::endl;
 	if(compare_cpu)
 		std::cout <<"\tcpu time: "<<1e3*cpuTimer.getTime()<<"ms"<<std::endl;
+
+	std::cout << out[0] << " " << out[100] << " " << out[n-1] << std::endl;
 
 	//free
 	free(cpu_v);	free(out);

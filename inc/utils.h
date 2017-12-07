@@ -46,6 +46,25 @@ int nextpow2(type x) {
         return exp;
 }
 
+
+template <typename type>
+int get_subarray_size(int n, int max_size=100) {
+	int s = 1;
+	int grain=0;
+	int max = max_size;
+
+	while( std::ceil((float)n/grain) != std::pow(2,s) ) {
+		s = 1;
+		grain = std::ceil((float)n/std::pow(2,s));
+		max += max_size;
+		while( grain>max ) {
+			s++;
+			grain = std::ceil((float)n/std::pow(2,s));
+		}
+	}
+	return grain;
+}
+
 template <typename type>
 void print_array(type* array, int n) {
         for(int i=0; i<n; i++) {
