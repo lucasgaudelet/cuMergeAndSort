@@ -11,8 +11,6 @@
 #include <partition.h>
 #include <sort.h>
 
-#include <sys/ioctl.h> // for size of terminal
-#include <cstdlib>
 
 const static int DEFAULT_N = 100;
 const static int DEFAULT_PARTSIZE = 32;
@@ -35,7 +33,7 @@ int main(int argc, char* argv[]){
 	chCommandLineGet<int>(&n, "size", argc, argv);
 	n = (n!=-1)? n:DEFAULT_N;
 
-	// thread per block
+	// size of partition
 	int partSize = -1;
 	chCommandLineGet<int>(&partSize, "p", argc, argv);
 	chCommandLineGet<int>(&partSize, "partSize", argc, argv);
@@ -50,7 +48,6 @@ int main(int argc, char* argv[]){
 
 	// gpu sort
 	std::cout << "gpu sort...\t" << std::flush;
-
 	ChTimer kernel;
 	kernel.start();
 	msWrapper(cpu_v, n, out, partSize);
@@ -71,7 +68,6 @@ int main(int argc, char* argv[]){
 	}
 
 	// display performances
-	print_array(out, n);
 	std::cout << "Results...\t" << std::flush;
 	std::cout << "\tsorted=" << is_sorted(out, n) << std::endl;
 	std::cout << "\tgpu time: " << 1e3*kernel.getTime() << "ms" << std::endl;
@@ -79,7 +75,7 @@ int main(int argc, char* argv[]){
 		std::cout <<"\tcpu time: "<<1e3*cpuTimer.getTime()<<"ms"<<std::endl;
 
 	// application thats's very nice and all
-	float a = 0;
+	/*float a = 0;
 	std::cout << "Entrez un pourcentage * souhaité pour connaître l'année de panne correspondant: " <<std::endl;
 	std::cin >> a;
 
@@ -93,6 +89,7 @@ int main(int argc, char* argv[]){
 	std::cout << "25% des appareils tombent en panne avant : \t" << out[n/4] <<" ans"<< std::endl;
 	std::cout << "la durée de vie médiane des appareils est : \t" << out[n/2] <<" ans"<< std::endl;
 	std::cout << "25% des appareils tombent en panne après : \t" << out[3*n/4] << " ans" << std::endl;
+	*/
 
 	//free
 	free(cpu_v);	free(out);

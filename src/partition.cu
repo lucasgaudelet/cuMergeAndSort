@@ -12,7 +12,7 @@ __global__ void partition(int* A, int na, int* B, int nb, int* C){
 	int b_top = (index>na)? index-na:0;		// row index (in B)
 	int a_bot = b_top;				// top left col index
 
-	// binary search (dichotomy)
+	// binary search 
 	int a, b, offset, aid, bid;
 	if(tid ==0) {
 		// thread 0 always starts at (0,0)
@@ -20,7 +20,7 @@ __global__ void partition(int* A, int na, int* B, int nb, int* C){
 	}
 	else {
 		int cpt=0;
-		while(cpt<10000) {
+		while(cpt<100) {
 			// get mid cell of the (sub-)diagonal
 			offset = (a_top - a_bot) / 2;
 			a = a_top - offset;		b = b_top + offset;
@@ -44,7 +44,7 @@ __global__ void partition(int* A, int na, int* B, int nb, int* C){
 		}
 	}
 
-	printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
+	//printf("[%d] (%d,%d); %d\n", tid, aid, bid, index);
 	merge(A, na, aid, B, nb, bid, C, index, load);
 }
 

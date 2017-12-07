@@ -25,12 +25,11 @@ __global__ void initial_sort(int* array, int size, int grain_size) {
 
 	while(index < size) {
 		int n = (index+grain_size>size)? size-index:grain_size;
-		printf("[%d] initial sort nb=%d\n", tid, n);
+		//printf("[%d] initial sort nb=%d\n", tid, n);
 		bubbleSort(array+index,n);
 		index+=gridDim.x*blockDim.x*grain_size;
 	}
 }
-
 
 __global__ void parallel_merge(int* input_array, int size, int* output_array, int subarray_size, int part_size) {
 	
@@ -43,9 +42,8 @@ __global__ void parallel_merge(int* input_array, int size, int* output_array, in
 	int na = subarray_size;
 	int nb = (shift_B+subarray_size>size)? size-shift_B:subarray_size;	
 
-	//printf("[%d], parallel merge nb=%d\n", tid, nb);
 
-	printf("[%d] shift_A:%d na:%d shift_B:%d nb:%d nPart:%d\n", tid, shift_A, na, shift_B, nb, nPartitions);
+	//printf("[%d] shift_A:%d na:%d shift_B:%d nb:%d nPart:%d\n", tid, shift_A, na, shift_B, nb, nPartitions);
 	partition<<<1,nPartitions>>>(input_array+shift_A, na, input_array+shift_B, nb, output_array+shift_A); 
 
 }
@@ -56,30 +54,26 @@ void msWrapper(int* input_array, int size, int* output_array, int part_size) {
 	int subarray_size = get_subarray_size<int>(size);
 	int p = std::ceil((float)size/subarray_size);
 
-	std::cout << "\nn=" << size << "\tgrain=" << subarray_size << "\tn/grain=" << std::ceil((float)size/subarray_size) << std::endl;
+	//std::cout << "\nn=" << size << "\tgrain=" << subarray_size << "\tn/grain=" << std::ceil((float)size/subarray_size) << std::endl;
 
 	// initial sorting of the array
 	cudaMalloc(&tmp, size*sizeof(int));
 	cudaMemcpy(tmp, input_array, size*sizeof(int), cudaMemcpyHostToDevice);
-	int* test = (int*)malloc(size*sizeof(int));
-	cudaMemcpy(test, tmp, size*sizeof(int), cudaMemcpyDeviceToHost);
-	print_array(test, size);
-	free(test);
 
-	std::cout << "initial_sort:" << subarray_size << std::endl;
+	//std::cout << "initial_sort:" << subarray_size << std::endl;
 	initial_sort<<<1, p>>>(tmp, size, subarray_size);
 
-	test = (int*)malloc(size*sizeof(int));
+	/*test = (int*)malloc(size*sizeof(int));
 	cudaMemcpy(test, tmp, size*sizeof(int), cudaMemcpyDeviceToHost);
 	print_array(test, size);
-	free(test);
+	free(test);*/
 
 	// merging arrays two by two until complete sorting
 	while(p>1) {
 	
 		cudaMalloc(&tmp2, size*sizeof(int));
 
-		std::cout << "parallel_merge: " << 1 << " x " << p << std::endl;
+		//std::cout << "parallel_merge: " << 1 << " x " << p << std::endl;
 		parallel_merge <<<1,(p>>1)>>> (tmp, size, tmp2, subarray_size, part_size);
 
 		/*int* test = (int*)malloc(size*sizeof(int));
