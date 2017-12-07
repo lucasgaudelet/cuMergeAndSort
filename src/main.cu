@@ -11,8 +11,11 @@
 #include <partition.h>
 #include <sort.h>
 
+#include <sys/ioctl.h> // for size of terminal
+#include <cstdlib>
+
 const static int DEFAULT_N = 100;
-const static int DEFAULT_BLOCKSIZE = 32;
+const static int DEFAULT_PARTSIZE = 32;
 
 void print_help( char* argv);
 
@@ -33,76 +36,32 @@ int main(int argc, char* argv[]){
 	n = (n!=-1)? n:DEFAULT_N;
 
 	// thread per block
-	int blockSize = -1;
-	chCommandLineGet<int>(&blockSize, "b", argc, argv);
-	chCommandLineGet<int>(&blockSize, "blockSize", argc, argv);
-	blockSize = (blockSize!=-1)? blockSize:DEFAULT_BLOCKSIZE;
+	int partSize = -1;
+	chCommandLineGet<int>(&partSize, "p", argc, argv);
+	chCommandLineGet<int>(&partSize, "partSize", argc, argv);
+	partSize = (partSize!=-1)? partSize:DEFAULT_PARTSIZE;
 
-	// memory allocation
-	std::cout << "Memory allocation...\t" << std::flush;
-		// cpu
+	// memory allocation and initialisation
+	std::cout << "Initialization...\t" << std::flush;
 	int* cpu_v = (int*)malloc(n*sizeof(int));
 	int* out = (int*)malloc(n*sizeof(int));
-
-		// gpu
-	/*int na, nb;
-	na = floor(n/2); 	nb = ceil(n/2);
-
-	int *A, *B, *C;
-	cudaMalloc(&A, na*sizeof(int));
-	cudaMalloc(&B, nb*sizeof(int));
-	cudaMalloc(&C, n*sizeof(int));
-
-	if(!A || !B || !C ) {
-		std::cout << "memory alloc error" << std::endl;
-		return -1;
-	}*/
-
-	std::cout << "done" << std::endl;
-	
-	// initialization
-	std::cout << "Initialization and H2D...\t" << std::flush;
-	
 	init_array(cpu_v, n);
-	/*init_array(cpu_v, na, 0);		init_array(cpu_v+na, nb, 0);
-	bubbleSort(cpu_v, na);			bubbleSort(cpu_v+na, nb);
-	cudaMemcpy(A, cpu_v, na*sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(B, cpu_v+na, nb*sizeof(int), cudaMemcpyHostToDevice);
-	*/
-	if(n<70) {
-		std::cout << std::endl;
-		//print_array(cpu_v, na);
-		//print_array(cpu_v+na, nb);
-	}
-	std::cout << "done" << std::endl << std::endl;
+	std::cout << "done" << std::endl;
 
-	// Kernel call
+	// gpu sort
 	std::cout << "gpu sort...\t" << std::flush;
 
 	ChTimer kernel;
 	kernel.start();
-	/*partition2<<<1, blockSize>>>(A, na, B, nb, C);
-	partition<<<1, blockSize>>>(A, na, B, nb, C);
-	cudaDeviceSynchronize();
-	*/
-	msWrapper(cpu_v, n, out, blockSize);
+	msWrapper(cpu_v, n, out, partSize);
 	kernel.stop();
 	std::cout << "done" << std::endl;
 
-	//print_array(out, n);
 
-	// D2H
-	/*std::cout << "transfert D2H...\t" << std::flush;
-	cudaMemcpy(out, C, n*sizeof(int), cudaMemcpyDeviceToHost);
-	std::cout << "done" << std::endl;
-	*/
 	// compare results
 	ChTimer cpuTimer;
-	//string filename;
 	bool compare_cpu = (chCommandLineGetBool("c", argc, argv))?
 		true:chCommandLineGetBool("compare-cpu", argc, argv);
-	//bool store = (chCommandLineGetBool("r", argc, argv))?
-	//	true:chCommandLineGetBool("store-results", argc, argv);
 	if(compare_cpu) {
 		std::cout << "cpu sort...\t" << std::flush;
 		cpuTimer.start();
@@ -111,22 +70,32 @@ int main(int argc, char* argv[]){
 		std::cout << "done" << std::endl << std::endl;
 	}
 
-	// afficher
+	// display performances
+	print_array(out, n);
 	std::cout << "Results...\t" << std::flush;
-	if(n<70)	print_array(out, n);
-	else		std::cout << std::endl;
 	std::cout << "\tsorted=" << is_sorted(out, n) << std::endl;
 	std::cout << "\tgpu time: " << 1e3*kernel.getTime() << "ms" << std::endl;
 	if(compare_cpu)
 		std::cout <<"\tcpu time: "<<1e3*cpuTimer.getTime()<<"ms"<<std::endl;
 
-	std::cout << out[0] << " " << out[100] << " " << out[n-1] << std::endl;
+	// application thats's very nice and all
+	float a = 0;
+	std::cout << "Entrez un pourcentage * souhaité pour connaître l'année de panne correspondant: " <<std::endl;
+	std::cin >> a;
+
+	int result = floor(a/100*n);
+
+	std::cout << std::endl;
+	std::cout << "Il y a " << a << "% des appareils qui tombent en panne avant " << out[result]<< " ans" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "Informations complémentaires:" << std::endl;
+	std::cout << "25% des appareils tombent en panne avant : \t" << out[n/4] <<" ans"<< std::endl;
+	std::cout << "la durée de vie médiane des appareils est : \t" << out[n/2] <<" ans"<< std::endl;
+	std::cout << "25% des appareils tombent en panne après : \t" << out[3*n/4] << " ans" << std::endl;
 
 	//free
 	free(cpu_v);	free(out);
-	/*cudaFree(A);	cudaFree(B);
-	cudaFree(C);
-	*/
 
 	return 0;
 }
@@ -139,8 +108,8 @@ void print_help( char* argv) {
 		<< std::endl
 		<< "  -n|--size" << std::endl
 		<< "      size of input array" << std::endl
-		<< "  -b|--blockSize" << std::endl
-		<< "      size of thread block, only one block is used" << std::endl
+		<< "  -p|--partSize" << std::endl
+		<< "      size of each partition" << std::endl
 		<< std::endl;
 
 }
